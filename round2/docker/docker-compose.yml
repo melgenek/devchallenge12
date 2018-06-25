@@ -1,0 +1,52 @@
+version: '2.0'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.7-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbit
+      RABBITMQ_DEFAULT_PASS: rabbit123
+    ports:
+      - 15672:15672
+      - 5672:5672
+
+  aerospike:
+    image: aerospike/aerospike-server:3.15.1.4
+    ports:
+      - 3000:3000
+
+  nginx:
+    image: devchallenge/static:latest
+
+  headless:
+    image: yukinying/chrome-headless-browser:68.0.3440.7
+    command: --enable-logging --v=1 --remote-debugging-address=0.0.0.0 --remote-debugging-port=9222
+    cap_add:
+      - SYS_ADMIN
+
+  processor:
+    image: devchallenge/processor:latest
+    environment:
+      AMQP_HOST: rabbitmq
+      AMQP_PORT: 5672
+      AMQP_USER: rabbit
+      AMQP_PASSWORD: rabbit123
+      PUPPETEER_HOST: headless
+      PUPPETEER_PORT: 9222
+
+  api:
+    image: devchallenge/api:latest
+    environment:
+      AMQP_HOST: rabbitmq
+      AMQP_PORT: 5672
+      AMQP_USER: rabbit
+      AMQP_PASSWORD: rabbit123
+      AEROSPIKE_HOST: aerospike
+      AEROSPIKE_NAMESPACE: test
+      AMQP_TTL: 15 seconds
+      MINIFY_TIMEOUT: 3 second
+      CACHE_TTL: 100 seconds
+      CACHE: 'true'
+    ports:
+      - 8080:8080
+

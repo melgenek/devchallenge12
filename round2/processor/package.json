@@ -1,0 +1,11 @@
+{
+  "name": "processor",
+  "description": "Running headless Chrome and getting css",
+  "version": "1.0.0",
+  "dependencies": {
+    "amqplib": "0.5.2",
+    "axios": "0.18.0",
+    "minimalcss": "0.7.5",
+    "puppeteer": "1.4.0-next.1527877736615"
+  }
+}
