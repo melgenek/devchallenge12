@@ -1,0 +1,7 @@
+.idea
+*.eml
+*.iml
+target/
+out/
+node_modules/
+results/

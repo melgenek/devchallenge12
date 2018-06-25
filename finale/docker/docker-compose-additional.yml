@@ -1,0 +1,24 @@
+version: '2.0'
+
+services:
+  redis3:
+    image: redis:3.2.12-alpine
+
+  api3:
+    image: devchallenge/api:latest
+    environment:
+      REDIS_HOST: redis3
+      REDIS_PORT: 6379
+      MESSAGING_SERVERS: "kafka:9092"
+      MESSAGING_TOPIC: data_events
+      MESSAGING_GROUP: group3
+      CONSUL_HOST: consul
+      CONSUL_PORT: 8500
+      CONSUL_SERVICE: api
+    ports:
+      - 9003:8080
+
+networks:
+  default:
+    external:
+      name: docker_default

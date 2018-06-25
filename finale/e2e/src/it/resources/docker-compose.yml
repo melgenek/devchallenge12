@@ -1,0 +1,90 @@
+version: '2.0'
+
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - 2181:2181
+
+  kafka:
+    image: wurstmeister/kafka:1.1.0
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_CREATE_TOPICS: "data_events:3:1"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+
+  redis1:
+    image: redis:3.2.12-alpine
+    ports:
+      - 6379:6379
+
+  api1:
+    image: devchallenge/api:latest
+    environment:
+      REDIS_HOST: redis1
+      REDIS_PORT: 6379
+      MESSAGING_SERVERS: "kafka:9092"
+      MESSAGING_TOPIC: data_events
+      MESSAGING_GROUP: group1
+      CONSUL_HOST: consul
+      CONSUL_PORT: 8500
+      CONSUL_SERVICE: api
+    ports:
+      - 9001:8080
+
+  redis2:
+    image: redis:3.2.12-alpine
+
+  api2:
+    image: devchallenge/api:latest
+    environment:
+      REDIS_HOST: redis2
+      REDIS_PORT: 6379
+      MESSAGING_SERVERS: "kafka:9092"
+      MESSAGING_TOPIC: data_events
+      MESSAGING_GROUP: group2
+      CONSUL_HOST: consul
+      CONSUL_PORT: 8500
+      CONSUL_SERVICE: api
+    ports:
+      - 9002:8080
+
+
+  redis3:
+    image: redis:3.2.12-alpine
+
+  api3:
+    image: devchallenge/api:latest
+    environment:
+      REDIS_HOST: redis3
+      REDIS_PORT: 6379
+      MESSAGING_SERVERS: "kafka:9092"
+      MESSAGING_TOPIC: data_events
+      MESSAGING_GROUP: group3
+      CONSUL_HOST: consul
+      CONSUL_PORT: 8500
+      CONSUL_SERVICE: api
+      SERVICE_IGNORE: always
+    ports:
+      - 9003:8080
+
+  consul:
+      image: consul:1.1.0
+      command: agent -server -bootstrap -client=0.0.0.0 -ui
+      environment:
+        - SERVICE_IGNORE=always
+      ports:
+        - 8500:8500
+
+  registrator:
+    image: gliderlabs/registrator:latest
+    command: "consul://consul:8500"
+    depends_on:
+      - consul
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock
+
+
