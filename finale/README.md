@@ -92,12 +92,11 @@ curl -X DELETE http://localhost:9001/records/name1
 It is not supposed to be opened to end user
 
 ### Algorithm and replication
-According to discussion in https://finaldev12.slack.com/archives/CBBVCCLSY/p1529743312000022
-the requirement for storing data is as follows:
-* when record is created for the first time all the nodes alive need to get data synchronously
-* when the record is updated it can be updated eventually
+The discussion with the judges lead to requirements:
+* when a record is created for the first time, all the alive nodes need to get data synchronously
+* when the record is updated, it can be updated eventually
 
-Alive nodes - the nodes registered in consul
+Alive nodes - the nodes that are registered in consul
 The algo:
 * get  all alive nodes from consul
 * use internal http method to store data
@@ -110,6 +109,15 @@ when data was not stored earlier
 * order of changes can be corrupted.
 Solution: data in kafka is guaranteed to be processed one after another based on partition key.
 The key for the records in the system is `name`.
+
+**UPD (created after the competition end)**. 
+The solution does not work properly and leads to an unpredictable order of elements during concurrent request upon one key.
+This solution can be enhanced:
+* get request for name-value
+* put request to queue#1
+* create additional listerner that handles queue#1 messages. It updates alive nodes using http.
+To allow nodes that aren't alive to get the data later, listener puts the processed messages to queue#2
+* all api nodes listen to queue#2 messages and process them if needed.
 
 ### Testsuite for N-master replication 
 
